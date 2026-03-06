@@ -4,162 +4,121 @@ const ctx = canvas.getContext("2d")
 const paddleWidth = 10
 const paddleHeight = 100
 
-let player = {
-x:20,
-y:200,
-score:0
-}
+let player1 = { x: 20, y: 200, score: 0 }
+let player2 = { x: 770, y: 200, score: 0 }
 
-let ai = {
-x:770,
-y:200,
-score:0
-}
-
-let ball = {
-x:400,
-y:250,
-vx:4,
-vy:3,
-size:10
-}
+let ball = { x: 400, y: 250, vx: 4, vy: 3, size: 10 }
 
 let keys = {}
 
-window.addEventListener("keydown",e=>{
-keys[e.key] = true
+window.addEventListener("keydown", e => {
+    keys[e.key] = true
 })
 
-window.addEventListener("keyup",e=>{
-keys[e.key] = false
+window.addEventListener("keyup", e => {
+    keys[e.key] = false
 })
 
-function resetBall(){
+function resetBall() {
+    ball.x = 400
+    ball.y = 250
+    ball.vx *= -1
+    ball.vy = (Math.random() * 4) - 2
+}
 
-ball.x = 400
-ball.y = 250
+function drawRect(x, y, w, h) {
+    ctx.fillStyle = "white"
+    ctx.fillRect(x, y, w, h)
+}
 
-ball.vx *= -1
-ball.vy = (Math.random()*4)-2
+function drawBall() {
+    ctx.beginPath()
+    ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2)
+    ctx.fillStyle = "white"
+    ctx.fill()
+}
+
+function drawNet() {
+    for (let i = 0; i < canvas.height; i += 30) {
+        ctx.fillRect(395, i, 10, 20)
+    }
+}
+
+function movePlayers() {
+
+    if (keys["w"]) player1.y -= 6
+    if (keys["s"]) player1.y += 6
+
+    if (keys["ArrowUp"]) player2.y -= 6
+    if (keys["ArrowDown"]) player2.y += 6
 
 }
 
-function drawRect(x,y,w,h){
-ctx.fillStyle="white"
-ctx.fillRect(x,y,w,h)
-}
+function updateBall() {
 
-function drawBall(){
+    ball.x += ball.vx
+    ball.y += ball.vy
 
-ctx.beginPath()
-ctx.arc(ball.x,ball.y,ball.size,0,Math.PI*2)
-ctx.fillStyle="white"
-ctx.fill()
+    if (ball.y < 0 || ball.y > canvas.height) {
+        ball.vy *= -1
+    }
 
-}
+    if (
+        ball.x < player1.x + paddleWidth &&
+        ball.y > player1.y &&
+        ball.y < player1.y + paddleHeight
+    ) {
+        ball.vx *= -1
+    }
 
-function drawNet(){
+    if (
+        ball.x > player2.x &&
+        ball.y > player2.y &&
+        ball.y < player2.y + paddleHeight
+    ) {
+        ball.vx *= -1
+    }
 
-for(let i=0;i<canvas.height;i+=30){
+    if (ball.x < 0) {
+        player2.score++
+        resetBall()
+    }
 
-ctx.fillRect(395,i,10,20)
-
-}
-
-}
-
-function movePlayer(){
-
-if(keys["w"]) player.y -= 6
-if(keys["s"]) player.y += 6
-
-}
-
-function moveAI(){
-
-let center = ai.y + paddleHeight/2
-
-if(center < ball.y){
-ai.y += 4
-}
-else{
-ai.y -= 4
-}
+    if (ball.x > canvas.width) {
+        player1.score++
+        resetBall()
+    }
 
 }
 
-function updateBall(){
+function drawScore() {
 
-ball.x += ball.vx
-ball.y += ball.vy
+    ctx.font = "40px Arial"
+    ctx.fillStyle = "white"
 
-if(ball.y < 0 || ball.y > canvas.height){
-ball.vy *= -1
-}
-
-if(
-ball.x < player.x + paddleWidth &&
-ball.y > player.y &&
-ball.y < player.y + paddleHeight
-){
-
-ball.vx *= -1
+    ctx.fillText(player1.score, 200, 50)
+    ctx.fillText(player2.score, 580, 50)
 
 }
 
-if(
-ball.x > ai.x &&
-ball.y > ai.y &&
-ball.y < ai.y + paddleHeight
-){
+function gameLoop() {
 
-ball.vx *= -1
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-}
+    drawNet()
 
-if(ball.x < 0){
+    movePlayers()
 
-ai.score++
-resetBall()
+    updateBall()
 
-}
+    drawRect(player1.x, player1.y, paddleWidth, paddleHeight)
+    drawRect(player2.x, player2.y, paddleWidth, paddleHeight)
 
-if(ball.x > canvas.width){
+    drawBall()
 
-player.score++
-resetBall()
+    drawScore()
 
-}
-
-}
-
-function drawScore(){
-
-ctx.font="40px Arial"
-ctx.fillText(player.score,200,50)
-ctx.fillText(ai.score,580,50)
-
-}
-
-function gameLoop(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-drawNet()
-
-movePlayer()
-moveAI()
-
-updateBall()
-
-drawRect(player.x,player.y,paddleWidth,paddleHeight)
-drawRect(ai.x,ai.y,paddleWidth,paddleHeight)
-
-drawBall()
-
-drawScore()
-
-requestAnimationFrame(gameLoop)
+    requestAnimationFrame(gameLoop)
 
 }
 
